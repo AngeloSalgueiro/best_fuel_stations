@@ -1,8 +1,8 @@
-use models::temp::temp;
+use data::stations_fetcher::stations_fetcher;
 
-pub mod models;
+pub mod data;
 
 #[tokio::main]
-async fn main(){
-    let _ = temp().await;
+async fn main() {
+    let _ = stations_fetcher().await;
 }
