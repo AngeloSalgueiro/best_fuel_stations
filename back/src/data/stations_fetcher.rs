@@ -14,7 +14,7 @@ async fn fetch_data(raw_url: &str, limit: u16, offset: u64) -> Result<Value, Err
     Ok(data)
 }
 
-// Fetch all fuels stations from the french gouvernement api
+// Fetch all fuel stations from the french gouvernement api
 async fn fetch_stations_data(limit: u16) -> Vec<Value> {
     dotenv().ok();
     let url = env::var("GOUV_API").expect("GOUV_API is not set");
