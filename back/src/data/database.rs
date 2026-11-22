@@ -1,14 +1,25 @@
 use rusqlite::{Connection, Error, Result, Statement};
-use std::fs;
+use std::{env, fs};
 
 use crate::data::stations_fetcher::{Station, fetch_stations_data};
 
 pub async fn db_init() -> Result<Connection, Error> {
-    println!("Clearing old database");
-    fs::remove_file("database.db").ok();
+    let exe_dir = env::current_exe()
+        .expect("Cannot get executable path")
+        .parent()
+        .expect("Cannot get executable directory")
+        .to_path_buf();
 
-    println!("Initializing database");
-    let conn = Connection::open("database.db").expect("Error while opening the database");
+    let db_path = exe_dir.join("database.db");
+
+    println!("Clearing old database.");
+
+    fs::remove_file(db_path.clone()).ok();
+
+    println!("Initializing database.");
+
+    let mut conn = Connection::open(db_path).expect("Error while opening the database");
+
     println!("Database created!");
 
     conn.execute_batch(
@@ -35,38 +46,42 @@ pub async fn db_init() -> Result<Connection, Error> {
 
     println!("Tables created successfully.");
 
-    let stations = fetch_stations_data().await.unwrap();
+    let stations: Vec<Station> = fetch_stations_data().await.unwrap();
 
-    for station in stations {
-        conn.execute(
+    println!("Inserting stations into database...");
+
+    let tx = conn.transaction()?;
+
+    {
+        let mut station_stmt = tx.prepare(
             "INSERT INTO stations (id, latitude, longitude, city, adress, cp)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            (
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        )?;
+
+        let mut fuel_stmt = tx.prepare(
+            "INSERT INTO fuels (fuel_type, price, last_update, station_id)
+             VALUES (?1, ?2, ?3, ?4)",
+        )?;
+
+        for station in stations {
+            station_stmt.execute((
                 station.id,
                 station.latitude,
                 station.longitude,
                 station.city.as_deref(),
                 station.adress.as_deref(),
                 station.cp.as_deref(),
-            ),
-        )
-        .expect("Error while inserting data into table stations");
+            ))?;
 
-        let fuels = station.fuels;
-
-        for fuel in fuels {
-            conn.execute(
-                "INSERT INTO fuels (
-                fuel_type,
-                price,
-                last_update,
-                station_id)
-                     VALUES (?1, ?2, ?3, ?4)",
-                (fuel.name, fuel.price, fuel.updated_at, station.id),
-            )
-            .expect("Error while inserting data into table fuels");
+            for fuel in station.fuels {
+                fuel_stmt.execute((fuel.name, fuel.price, fuel.updated_at, station.id))?;
+            }
         }
     }
+
+    tx.commit()?;
+
+    println!("Stations inserted succesfully!");
 
     Ok(conn)
 }

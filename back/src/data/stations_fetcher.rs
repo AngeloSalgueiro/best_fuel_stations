@@ -1,4 +1,5 @@
 use dotenv::dotenv;
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Error;
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
@@ -58,26 +59,23 @@ where
 
     let value = match value {
         serde_json::Value::String(s) => {
-            serde_json::from_str(&s)
-                .map_err(serde::de::Error::custom)?
+            serde_json::from_str(&s).map_err(serde::de::Error::custom)?
         }
         other => other,
     };
 
     match value {
         serde_json::Value::Array(_) => {
-            serde_json::from_value(value)
-                .map_err(serde::de::Error::custom)
+            serde_json::from_value(value).map_err(serde::de::Error::custom)
         }
         serde_json::Value::Object(_) => {
-            let fuel: Fuel = serde_json::from_value(value)
-                .map_err(serde::de::Error::custom)?;
+            let fuel: Fuel = serde_json::from_value(value).map_err(serde::de::Error::custom)?;
 
             Ok(vec![fuel])
         }
         serde_json::Value::Null => Ok(Vec::new()),
         _ => Err(serde::de::Error::custom(
-            "Expected a fuel object, array, or JSON string"
+            "Expected a fuel object, array, or JSON string",
         )),
     }
 }
@@ -115,7 +113,17 @@ pub async fn fetch_stations_data() -> Result<Vec<Station>, Box<dyn std::error::E
 
     results.extend(stations);
 
-    println!("Fetched {} elements", offset);
+    println!("Fetching stations...");
+    let bar = ProgressBar::new(total_count);
+    bar.set_style(
+        ProgressStyle::with_template(
+            "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}",
+        )
+        .unwrap()
+        .progress_chars("##-"),
+    );
+
+    bar.inc(limit as u64);
 
     while offset < total_count {
         let data = fetch_data(&url, limit, offset).await?;
@@ -124,8 +132,11 @@ pub async fn fetch_stations_data() -> Result<Vec<Station>, Box<dyn std::error::E
 
         results.extend(stations);
         offset += limit as u64;
-        println!("Fetched {} elements", offset);
+
+        bar.inc(limit as u64);
     }
+
+    bar.finish();
 
     Ok(results)
 }
