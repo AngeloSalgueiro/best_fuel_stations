@@ -1,26 +1,21 @@
 use rusqlite::{Connection, Error, Result, Statement};
-use std::{env, fs};
+use std::env;
 
-use crate::data::stations_fetcher::{Station, fetch_stations_data};
+use crate::data::stations_fetcher::fetch_stations_data;
+use crate::entities::station::Station;
 
-pub async fn db_init() -> Result<Connection, Error> {
-    let exe_dir = env::current_exe()
-        .expect("Cannot get executable path")
-        .parent()
-        .expect("Cannot get executable directory")
-        .to_path_buf();
+pub async fn db_init() -> Result<Connection, Box<dyn std::error::Error>> {
+    let db_path = env::current_dir()?.join("database.db");
 
-    let db_path = exe_dir.join("database.db");
+    println!("Database path: {:?}", db_path);
 
-    println!("Clearing old database.");
-
-    fs::remove_file(db_path.clone()).ok();
-
-    println!("Initializing database.");
-
-    let mut conn = Connection::open(db_path).expect("Error while opening the database");
-
+    let mut conn = Connection::open(&db_path)?;
     println!("Database created!");
+
+    conn.execute("DELETE FROM stations", ())?;
+    conn.execute("DELETE FROM fuels", ())?;
+
+    println!("Cleared old data.");
 
     conn.execute_batch(
         "
