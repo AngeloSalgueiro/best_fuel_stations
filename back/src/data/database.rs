@@ -21,7 +21,6 @@ pub async fn db_init() -> Result<Connection, Error> {
 // Check if the data in the db are still up to date
 pub async fn db_check() -> Result<Connection, Error> {
     let conn = db_connect()?;
-
     let today = Utc::now();
 
     let last_update_string: Result<String> = conn.query_row(
