@@ -4,19 +4,73 @@ use std::env;
 use crate::data::stations_fetcher::fetch_stations_data;
 use crate::entities::station::Station;
 
+// Initialize the database
 pub async fn db_init() -> Result<Connection, Box<dyn std::error::Error>> {
-    let db_path = env::current_dir()?.join("database.db");
+    let conn = db_connect()?;
 
+    db_stations_clear(&conn)?;
+
+    db_create_tables(&conn)?;
+
+    let stations: Vec<Station> = fetch_stations_data().await.unwrap();
+
+    let conn = db_insert_stations(conn, stations)?;
+
+    Ok(conn)
+}
+
+// Check if the data in the db are still up to date
+pub fn db_check() {}
+
+// Connect to the db and return a Connection
+pub fn db_connect() -> Result<Connection, Box<dyn std::error::Error>> {
+    let db_path = env::current_dir()?.join("database.db");
     println!("Database path: {:?}", db_path);
 
-    let mut conn = Connection::open(&db_path)?;
-    println!("Database created!");
+    let conn = Connection::open("database.db")?;
+    println!("Connected to database!");
 
+    return Ok(conn);
+}
+
+pub fn db_test() {
+    let conn = Connection::open("database.db").expect("Error while opening database");
+
+    let mut stmt: Statement = conn
+        .prepare("SELECT * FROM stations where city = 'Savenay'")
+        .expect("Error while preparing statement");
+
+    let station_iter = stmt
+        .query_map([], |row| {
+            Ok(Station {
+                id: row.get(0)?,
+                latitude: row.get(1)?,
+                longitude: row.get(2)?,
+                city: row.get(3)?,
+                adress: row.get(4)?,
+                cp: row.get(5)?,
+                fuels: vec![],
+            })
+        })
+        .expect("Error while executing statement");
+
+    for station in station_iter {
+        println!("{:?}", station)
+    }
+}
+
+// Clear the data related to the stations from the db
+fn db_stations_clear(conn: &Connection) -> Result<(), Error> {
     conn.execute("DELETE FROM stations", ())?;
     conn.execute("DELETE FROM fuels", ())?;
 
     println!("Cleared old data.");
 
+    Ok(())
+}
+
+// Create the tables if they don't exists
+fn db_create_tables(conn: &Connection) -> Result<(), Error> {
     conn.execute_batch(
         "
     CREATE TABLE IF NOT EXISTS stations (
@@ -41,10 +95,12 @@ pub async fn db_init() -> Result<Connection, Box<dyn std::error::Error>> {
 
     println!("Tables created successfully.");
 
-    let stations: Vec<Station> = fetch_stations_data().await.unwrap();
+    Ok(())
+}
 
+// Insert the data related to the stations in db
+fn db_insert_stations(mut conn: Connection, stations: Vec<Station>) -> Result<Connection, Error> {
     println!("Inserting stations into database...");
-
     let tx = conn.transaction()?;
 
     {
@@ -79,38 +135,4 @@ pub async fn db_init() -> Result<Connection, Box<dyn std::error::Error>> {
     println!("Stations inserted succesfully!");
 
     Ok(conn)
-}
-
-pub fn db_check() {}
-
-pub fn db_connect() -> Result<Connection, Error> {
-    let conn = Connection::open("database.db")?;
-
-    return Ok(conn);
-}
-
-pub fn db_test() {
-    let conn = Connection::open("database.db").expect("Error while opening database");
-
-    let mut stmt: Statement = conn
-        .prepare("SELECT * FROM stations where city = 'Savenay'")
-        .expect("Error while preparing statement");
-
-    let station_iter = stmt
-        .query_map([], |row| {
-            Ok(Station {
-                id: row.get(0)?,
-                latitude: row.get(1)?,
-                longitude: row.get(2)?,
-                city: row.get(3)?,
-                adress: row.get(4)?,
-                cp: row.get(5)?,
-                fuels: vec![],
-            })
-        })
-        .expect("Error while executing statement");
-
-    for station in station_iter {
-        println!("{:?}", station)
-    }
 }
