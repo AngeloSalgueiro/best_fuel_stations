@@ -19,6 +19,7 @@ async fn fetch_data(url: &str) -> Result<Value, Error> {
 pub async fn fetch_stations_data() -> Result<Vec<Station>, Box<dyn std::error::Error>> {
     let url = env::var("GOUV_API").expect("GOUV_API is not set");
 
+    println!("Fetching stations data...");
     let data = fetch_data(&url).await.map_err(|e| {
         eprintln!("Error while fetching the data :{}", e);
         e
