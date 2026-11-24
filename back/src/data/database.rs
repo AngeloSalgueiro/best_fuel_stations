@@ -62,8 +62,8 @@ pub fn db_connect() -> Result<Connection, Error> {
 
 // Clear the data related to the stations from the db
 fn db_stations_clear(conn: &Connection) -> Result<(), Error> {
-    conn.execute("DELETE FROM stations", ())?;
     conn.execute("DELETE FROM fuels", ())?;
+    conn.execute("DELETE FROM stations", ())?;
     conn.execute("DELETE FROM app_metadata WHERE key = 'last_update'", ())?;
 
     println!("Cleared old data.");
