@@ -5,64 +5,29 @@ use serde::{Deserialize, Deserializer};
 pub struct Station {
     pub id: i64,
 
-    #[serde(deserialize_with = "string_to_coord")]
+    #[serde(deserialize_with = "deserialize_coord")]
     pub latitude: Option<f64>,
 
-    #[serde(deserialize_with = "string_to_coord")]
+    #[serde(deserialize_with = "deserialize_coord")]
     pub longitude: Option<f64>,
 
-    #[serde(rename = "ville")]
+    #[serde(rename = "Ville")]
     pub city: Option<String>,
 
-    #[serde(rename = "adresse")]
+    #[serde(rename = "Adresse")]
     pub adress: Option<String>,
 
+    #[serde(rename = "Code postal")]
     pub cp: Option<String>,
 
-    #[serde(rename = "prix", default, deserialize_with = "string_to_fuels")]
+    #[serde(default, rename = "prix")]
     pub fuels: Vec<Fuel>,
 }
 
-fn string_to_coord<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+fn deserialize_coord<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let value: Option<String> = Option::deserialize(deserializer)?;
-
-    match value {
-        Some(s) => s
-            .parse::<f64>()
-            .map(|v| Some(v / 100_000.0))
-            .map_err(serde::de::Error::custom),
-        None => Ok(None),
-    }
-}
-
-fn string_to_fuels<'de, D>(deserializer: D) -> Result<Vec<Fuel>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value = serde_json::Value::deserialize(deserializer)?;
-
-    let value = match value {
-        serde_json::Value::String(s) => {
-            serde_json::from_str(&s).map_err(serde::de::Error::custom)?
-        }
-        other => other,
-    };
-
-    match value {
-        serde_json::Value::Array(_) => {
-            serde_json::from_value(value).map_err(serde::de::Error::custom)
-        }
-        serde_json::Value::Object(_) => {
-            let fuel: Fuel = serde_json::from_value(value).map_err(serde::de::Error::custom)?;
-
-            Ok(vec![fuel])
-        }
-        serde_json::Value::Null => Ok(Vec::new()),
-        _ => Err(serde::de::Error::custom(
-            "Expected a fuel object, array, or JSON string",
-        )),
-    }
+    let value = Option::<f64>::deserialize(deserializer)?;
+    Ok(value.map(|v| v / 100_000.0))
 }
