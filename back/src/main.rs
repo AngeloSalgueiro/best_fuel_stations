@@ -1,9 +1,11 @@
+use dotenv::dotenv;
 use best_fuel_stations::data::database::{db_check};
 use best_fuel_stations::entities::coordinates::Coordinates;
 use best_fuel_stations::models::stations_dao::StationDao;
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
     let conn = db_check().await.unwrap();
     let station_dao = StationDao::new(conn);
 

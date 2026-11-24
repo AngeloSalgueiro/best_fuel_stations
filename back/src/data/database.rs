@@ -1,15 +1,15 @@
 use crate::data::stations_fetcher::fetch_stations_data;
 use crate::entities::station::Station;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use rusqlite::{Connection, Error, Result, Statement};
+use rusqlite::{Connection, Error, Result};
 
 // Initialize the database
 pub async fn db_init() -> Result<Connection, Error> {
     let conn = db_connect()?;
 
-    db_stations_clear(&conn)?;
-
     db_create_tables(&conn)?;
+
+    db_stations_clear(&conn)?;
 
     let stations: Vec<Station> = fetch_stations_data().await.unwrap();
 
@@ -29,9 +29,15 @@ pub async fn db_check() -> Result<Connection, Error> {
         |row| row.get(0),
     );
 
+    let last_update = match last_update_string {
+        Ok(value) => value,
+        Err(_) => {
+            return Ok(db_init().await?);
+        }
+    };
+
     let naive =
-        NaiveDateTime::parse_from_str(last_update_string?.as_str(), "%Y-%m-%d %H:%M:%S%.f UTC")
-            .unwrap();
+        NaiveDateTime::parse_from_str(last_update.as_str(), "%Y-%m-%d %H:%M:%S%.f UTC").unwrap();
 
     let last_update: DateTime<Utc> = DateTime::from_naive_utc_and_offset(naive, Utc);
 
@@ -52,32 +58,6 @@ pub fn db_connect() -> Result<Connection, Error> {
     println!("Connected to database!");
 
     return Ok(conn);
-}
-
-pub fn db_test() {
-    let conn = Connection::open("database.db").expect("Error while opening database");
-
-    let mut stmt: Statement = conn
-        .prepare("SELECT * FROM stations where city = 'Savenay'")
-        .expect("Error while preparing statement");
-
-    let station_iter = stmt
-        .query_map([], |row| {
-            Ok(Station {
-                id: row.get(0)?,
-                latitude: row.get(1)?,
-                longitude: row.get(2)?,
-                city: row.get(3)?,
-                adress: row.get(4)?,
-                cp: row.get(5)?,
-                fuels: vec![],
-            })
-        })
-        .expect("Error while executing statement");
-
-    for station in station_iter {
-        println!("{:?}", station)
-    }
 }
 
 // Clear the data related to the stations from the db

@@ -1,4 +1,3 @@
-use dotenv::dotenv;
 use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Error;
 use serde_json::Value;
@@ -19,7 +18,6 @@ async fn fetch_data(raw_url: &str, limit: u16, offset: u64) -> Result<Value, Err
 
 // Fetch all fuel stations from the french gouvernement api
 pub async fn fetch_stations_data() -> Result<Vec<Station>, Box<dyn std::error::Error>> {
-    dotenv().ok();
     let url = env::var("GOUV_API").expect("GOUV_API is not set");
 
     let limit = 100;
