@@ -19,11 +19,23 @@ async fn main() {
 
     let coord = Coordinates::new(47.320306, -1.910185);
 
-    station_dao
+    let stations = station_dao
         .get_nearest_stations(coord, 3)
         .map_err(|e| {
             eprintln!("{}", e);
             e
         })
         .unwrap();
+
+    for station in stations {
+        println!(
+            "{} Adress: {} {} {}, Coordinates: {}, {}",
+            station.id,
+            station.adress.unwrap(),
+            station.city.unwrap(),
+            station.cp.unwrap(),
+            station.latitude.unwrap(),
+            station.longitude.unwrap()
+        )
+    }
 }

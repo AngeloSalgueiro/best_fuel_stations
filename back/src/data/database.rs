@@ -55,7 +55,6 @@ pub async fn db_check() -> Result<Connection, Error> {
 // Connect to the db and return a Connection
 pub fn db_connect() -> Result<Connection, Error> {
     let conn = Connection::open("database.db")?;
-    println!("Connected to database!");
 
     return Ok(conn);
 }
@@ -127,6 +126,8 @@ fn db_insert_stations(mut conn: Connection, stations: Vec<Station>) -> Result<Co
         )?;
 
         for station in stations {
+            
+            
             station_stmt.execute((
                 station.id,
                 station.latitude,

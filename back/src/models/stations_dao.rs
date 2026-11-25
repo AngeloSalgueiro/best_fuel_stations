@@ -20,7 +20,7 @@ impl StationDao {
     //         return ;
     //     };
     // pub fn getOne() -> Station;
-    pub fn get_nearest_station(&self, coord: Coordinates) -> Result<()> {
+    pub fn get_nearest_station(&self, coord: Coordinates) -> Result<Station> {
         let mut stmt = self.conn.prepare(
             "
             SELECT *,
@@ -51,14 +51,17 @@ impl StationDao {
         })?;
 
         for station in station_iter {
-            let station = station?;
-            println!("{:?}", station);
+            return Ok(station?);
         }
 
-        return Ok(());
+        panic!("No station found");
     }
 
-    pub fn get_nearest_stations(&self, coord: Coordinates, nb_stations: u8) -> Result<()> {
+    pub fn get_nearest_stations(
+        &self,
+        coord: Coordinates,
+        nb_stations: u8,
+    ) -> Result<Vec<Station>> {
         let mut stmt = self.conn.prepare(
             "
         SELECT *,
@@ -91,11 +94,8 @@ impl StationDao {
             },
         )?;
 
-        for station in station_iter {
-            let station = station?;
-            println!("{:?}", station);
-        }
+        let stations = station_iter.collect::<rusqlite::Result<Vec<Station>>>()?;
 
-        return Ok(());
+        return Ok(stations);
     }
 }
