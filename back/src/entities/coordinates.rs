@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
 pub struct Coordinates {
     pub latitude: f32,
     pub longitude: f32,
@@ -8,7 +11,7 @@ impl Coordinates {
         if latitude < -90.0 || latitude > 90.0 {
             panic!("Error: Invalid latitude");
         }
-        
+
         if longitude < -180.0 || longitude > 180.0 {
             panic!("Error: Invalid longitude");
         }

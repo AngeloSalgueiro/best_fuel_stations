@@ -1,7 +1,7 @@
 use crate::entities::fuel::Fuel;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Station {
     pub id: i64,
 

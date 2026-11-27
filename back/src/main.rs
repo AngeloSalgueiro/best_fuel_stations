@@ -1,6 +1,6 @@
 use best_fuel_stations::data::database::db_check;
-use best_fuel_stations::entities::coordinates::Coordinates;
-use best_fuel_stations::models::stations_dao::StationDao;
+use best_fuel_stations::models::station_dao::StationDao;
+use best_fuel_stations::routes::router::router;
 use dotenv::dotenv;
 
 #[tokio::main]
@@ -17,25 +17,10 @@ async fn main() {
 
     let station_dao = StationDao::new(conn);
 
-    let coord = Coordinates::new(47.320306, -1.910185);
+    let router = router(station_dao);
 
-    let stations = station_dao
-        .get_nearest_stations(coord, 3)
-        .map_err(|e| {
-            eprintln!("{}", e);
-            e
-        })
-        .unwrap();
-
-    for station in stations {
-        println!(
-            "{} Adress: {} {} {}, Coordinates: {}, {}",
-            station.id,
-            station.adress.unwrap(),
-            station.city.unwrap(),
-            station.cp.unwrap(),
-            station.latitude.unwrap(),
-            station.longitude.unwrap()
-        )
-    }
+    // run our app with hyper, listening globally on port 3000
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    println!("Server listening at port 3000");
+    axum::serve(listener, router).await.unwrap();
 }

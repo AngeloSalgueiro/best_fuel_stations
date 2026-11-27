@@ -1,1 +1,1 @@
-pub mod stations_dao;
+pub mod station_dao;
