@@ -20,6 +20,9 @@ pub fn router(station_dao: StationDao) -> Router {
 
     Router::new()
         .route(&format!("{}/", url), get(stations_sample))
-        .route(&format!("{}/nearest", url), post(nearest_stations))
+        .route(
+            &format!("{}/nearest/{{nb_stations}}", url),
+            post(nearest_stations),
+        )
         .with_state(state)
 }

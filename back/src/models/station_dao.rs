@@ -12,14 +12,6 @@ impl StationDao {
         return Self { conn };
     }
 
-    //     pub fn getAll() -> Vec<Station>{
-    //         let mut stmt = conn
-    //             .prepare("SELECT * FROM stations")
-    //             .expect("Error while preparing statement");
-    //
-    //         return ;
-    //     };
-    // pub fn getOne() -> Station;
     pub fn get_stations_sample(&self, sample_size: u8) -> Result<Vec<Station>> {
         let mut stmt = self
             .conn
@@ -37,7 +29,7 @@ impl StationDao {
                 fuels: vec![],
             })
         })?;
-        
+
         let stations = station_iter.collect::<rusqlite::Result<Vec<Station>>>()?;
 
         return Ok(stations);
@@ -61,17 +53,18 @@ impl StationDao {
         ",
         )?;
 
-        let station_iter = stmt.query_map([coord.latitude, coord.longitude], |row| {
-            Ok(Station {
-                id: row.get(0)?,
-                latitude: row.get(1)?,
-                longitude: row.get(2)?,
-                city: row.get(3)?,
-                adress: row.get(4)?,
-                cp: row.get(5)?,
-                fuels: vec![],
-            })
-        })?;
+        let station_iter =
+            stmt.query_map([coord.get_latitude(), coord.get_longitude()], |row| {
+                Ok(Station {
+                    id: row.get(0)?,
+                    latitude: row.get(1)?,
+                    longitude: row.get(2)?,
+                    city: row.get(3)?,
+                    adress: row.get(4)?,
+                    cp: row.get(5)?,
+                    fuels: vec![],
+                })
+            })?;
 
         for station in station_iter {
             return Ok(station?);
@@ -103,7 +96,11 @@ impl StationDao {
         )?;
 
         let station_iter = stmt.query_map(
-            [coord.latitude, coord.longitude, nb_stations as f32],
+            [
+                coord.get_latitude(),
+                coord.get_longitude(),
+                nb_stations as f32,
+            ],
             |row| {
                 Ok(Station {
                     id: row.get(0)?,
