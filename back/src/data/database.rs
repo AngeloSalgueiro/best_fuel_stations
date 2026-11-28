@@ -126,14 +126,12 @@ fn db_insert_stations(mut conn: Connection, stations: Vec<Station>) -> Result<Co
         )?;
 
         for station in stations {
-            
-            
             station_stmt.execute((
                 station.id,
                 station.latitude,
                 station.longitude,
                 station.city.as_deref(),
-                station.adress.as_deref(),
+                station.address.as_deref(),
                 station.cp.as_deref(),
             ))?;
 

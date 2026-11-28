@@ -24,7 +24,7 @@ impl StationDao {
                 latitude: row.get(1)?,
                 longitude: row.get(2)?,
                 city: row.get(3)?,
-                adress: row.get(4)?,
+                address: row.get(4)?,
                 cp: row.get(5)?,
                 fuels: vec![],
             })
@@ -60,7 +60,7 @@ impl StationDao {
                     latitude: row.get(1)?,
                     longitude: row.get(2)?,
                     city: row.get(3)?,
-                    adress: row.get(4)?,
+                    address: row.get(4)?,
                     cp: row.get(5)?,
                     fuels: vec![],
                 })
@@ -107,7 +107,7 @@ impl StationDao {
                     latitude: row.get(1)?,
                     longitude: row.get(2)?,
                     city: row.get(3)?,
-                    adress: row.get(4)?,
+                    address: row.get(4)?,
                     cp: row.get(5)?,
                     fuels: vec![],
                 })

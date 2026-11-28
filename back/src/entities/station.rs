@@ -11,13 +11,13 @@ pub struct Station {
     #[serde(deserialize_with = "deserialize_coord")]
     pub longitude: Option<f64>,
 
-    #[serde(rename = "Ville")]
+    #[serde(rename(serialize = "city", deserialize = "Ville"))]
     pub city: Option<String>,
 
-    #[serde(rename = "Adresse")]
-    pub adress: Option<String>,
+    #[serde(rename(serialize = "address", deserialize = "Adresse"))]
+    pub address: Option<String>,
 
-    #[serde(rename = "Code postal")]
+    #[serde(rename(serialize = "cp", deserialize = "Code postal"))]
     pub cp: Option<String>,
 
     #[serde(rename = "prix", default, deserialize_with = "string_to_fuels")]
