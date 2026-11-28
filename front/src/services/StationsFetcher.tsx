@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type Station from "../entities/Station";
 
-function useStations(nb_stations: number) {
+function useStations(latitude: number, longitude: number, nb_stations: number) {
   const [stations, setStations] = useState<Station[]>([]);
   const [dataIsLoaded, setDataIsLoaded] = useState(false);
 
@@ -16,8 +16,8 @@ function useStations(nb_stations: number) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              latitude: 46.221,
-              longitude: 5.245,
+              latitude: latitude,
+              longitude: longitude,
             }),
           },
         );

@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 import "../App.css";
 import type Station from "../entities/Station";
 
-function Map({ stations }: { stations: Station[] }) {
+function Map({ stations, latitude, longitude }: { stations: Station[], latitude: number, longitude: number }) {
   let markers = stations.map((station) => (
     <Marker
       key={station.id}
@@ -23,7 +23,7 @@ function Map({ stations }: { stations: Station[] }) {
 
   return (
     <MapContainer
-      center={[46.221, 5.245]}
+      center={[latitude, longitude]}
       zoom={13}
       style={{ height: "500px", width: "100%" }}
       className="map"
