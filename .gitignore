@@ -1,3 +1,5 @@
 back/target
 back/.env
 back/database.db
+
+front/node_modules
